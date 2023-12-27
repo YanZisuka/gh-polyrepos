@@ -1,0 +1,18 @@
+{
+  "name": "gh-polyrepos",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "pr": "tsx src/gh/pr.ts"
+  },
+  "dependencies": {
+    "inquirer": "^9.2.12",
+    "zx": "^7.2.3"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^9.0.7",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  },
+  "packageManager": "yarn@4.0.2"
+}
