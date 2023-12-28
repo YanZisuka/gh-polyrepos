@@ -76,7 +76,9 @@ async function main() {
       name: 'sourceBranch',
       message: 'Enter the source branch:',
       when: answers =>
-        ['pr create', 'pr review', 'pr comment'].includes(answers.ghCommand),
+        ['pr merge', 'pr create', 'pr review', 'pr comment'].includes(
+          answers.ghCommand,
+        ),
     },
     {
       type: 'input',
