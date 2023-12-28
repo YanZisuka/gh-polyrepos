@@ -151,7 +151,9 @@ async function main() {
             .filter(([key]) => key !== 'ghCommand')
             .filter(([, value]) => Boolean(value))
             .map(([key, value]) =>
-              key === 'sourceBranch' ? `--head=${value}` : `--${key}=${value}`,
+              key === 'sourceBranch'
+                ? `--head=${value}`
+                : `--${key}="${value}"`,
             )
             .join(' ')
 
@@ -169,7 +171,7 @@ async function main() {
               .filter(([key]) => key !== 'ghCommand' && key !== 'sourceBranch')
               .filter(([, value]) => Boolean(value))
               .map(([key, value]) =>
-                key === 'opts' ? `--${value}` : `--${key}=${value}`,
+                key === 'opts' ? `--${value}` : `--${key}="${value}"`,
               )
               .join(' ')
 
