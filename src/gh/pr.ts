@@ -40,6 +40,11 @@ async function executeCommand(
         `cd ${repoPath} && gh ${ghCommand} ${prNumber} ${ghCommandArgs}`,
       ] as unknown as TemplateStringsArray)
       break
+    case 'pr edit':
+      await $([
+        `cd ${repoPath} && gh ${ghCommand} ${prNumber} ${ghCommandArgs}`,
+      ] as unknown as TemplateStringsArray)
+      break
     default:
       throw new Error('Unsupported gh command.')
   }
@@ -65,7 +70,7 @@ async function main() {
   const answers = await inquirer.prompt([
     {
       type: 'list',
-      choices: ['pr merge', 'pr create', 'pr review', 'pr comment'],
+      choices: ['pr merge', 'pr create', 'pr review', 'pr comment', 'pr edit'],
       name: 'ghCommand',
       message: `Select a \`gh\` command to execute:
   more info: https://cli.github.com/manual/gh_pr
@@ -76,9 +81,13 @@ async function main() {
       name: 'sourceBranch',
       message: 'Enter the source branch:',
       when: answers =>
-        ['pr merge', 'pr create', 'pr review', 'pr comment'].includes(
-          answers.ghCommand,
-        ),
+        [
+          'pr merge',
+          'pr create',
+          'pr review',
+          'pr comment',
+          'pr edit',
+        ].includes(answers.ghCommand),
     },
     {
       type: 'input',
@@ -117,6 +126,12 @@ async function main() {
       message: 'Enter the comment body:',
       when: answers => answers.ghCommand === 'pr comment',
     },
+    {
+      type: 'input',
+      name: 'add-reviewer',
+      message: "Enter the reviewer's login:",
+      when: answers => answers.ghCommand === 'pr edit',
+    },
   ])
 
   await traverseDirectories(ROOT_DIR, async repoPath => {
@@ -139,6 +154,7 @@ async function main() {
       case 'pr review':
       case 'pr comment':
       case 'pr merge':
+      case 'pr edit':
         {
           const prNumber = await getPrNumber(repoPath, answers.sourceBranch)
           if (prNumber) {
