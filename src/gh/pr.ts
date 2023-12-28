@@ -132,6 +132,13 @@ async function main() {
       message: "Enter the reviewer's login:",
       when: answers => answers.ghCommand === 'pr edit',
     },
+    {
+      type: 'list',
+      choices: ['squash', 'merge', 'rebase'],
+      name: 'opts',
+      message: 'Select a merge option to execute:',
+      when: answers => answers.ghCommand === 'pr merge',
+    },
   ])
 
   await traverseDirectories(ROOT_DIR, async repoPath => {
