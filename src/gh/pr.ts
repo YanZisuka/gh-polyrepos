@@ -65,9 +65,11 @@ async function main() {
   const answers = await inquirer.prompt([
     {
       type: 'list',
-      name: 'ghCommand',
-      message: 'Select a `gh` command to execute:',
       choices: ['pr merge', 'pr create', 'pr review', 'pr comment'],
+      name: 'ghCommand',
+      message: `Select a \`gh\` command to execute:
+  more info: https://cli.github.com/manual/gh_pr
+`,
     },
     {
       type: 'input',
@@ -95,6 +97,13 @@ async function main() {
       when: answers => answers.ghCommand === 'pr create',
     },
     {
+      type: 'list',
+      choices: ['comment', 'approve', 'request-changes'],
+      name: 'opts',
+      message: 'Select a review option to execute:',
+      when: answers => answers.ghCommand === 'pr review',
+    },
+    {
       type: 'input',
       name: 'body',
       message: 'Enter the review body:',
@@ -116,6 +125,7 @@ async function main() {
         {
           const ghCommandArgs = Object.entries(answers)
             .filter(([key]) => key !== 'ghCommand')
+            .filter(([, value]) => Boolean(value))
             .map(([key, value]) =>
               key === 'sourceBranch' ? `--head=${value}` : `--${key}=${value}`,
             )
@@ -132,7 +142,10 @@ async function main() {
           if (prNumber) {
             const ghCommandArgs = Object.entries(answers)
               .filter(([key]) => key !== 'ghCommand' && key !== 'sourceBranch')
-              .map(([key, value]) => `--${key}=${value}`)
+              .filter(([, value]) => Boolean(value))
+              .map(([key, value]) =>
+                key === 'opts' ? `--${value}` : `--${key}=${value}`,
+              )
               .join(' ')
 
             await executeCommand(
