@@ -69,8 +69,17 @@ async function traverseDirectories(
   processDirectory: (path: string) => Promise<unknown>,
 ) {
   const entries = await readdir(currentPath)
+  const answers = await inquirer.prompt([
+    {
+      type: 'checkbox',
+      choices: entries,
+      default: entries,
+      name: 'entries',
+      message: `Select repos to execute command:`,
+    },
+  ])
 
-  for (const entry of entries) {
+  for (const entry of answers.entries) {
     const entryPath = `${currentPath}/${entry}`
     const entryStat = await stat(entryPath)
 
