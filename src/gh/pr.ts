@@ -4,6 +4,7 @@ import 'zx/globals'
 import { readFileSync } from 'fs'
 import { readdir, stat } from 'fs/promises'
 import inquirer from 'inquirer'
+import kebab from 'kebab-case'
 
 async function getRootDir(): Promise<string> {
   const ROOT_DIR: string = JSON.parse(
@@ -48,26 +49,16 @@ async function executeCommand(
         `cd ${repoPath} && gh ${ghCommand} ${ghCommandArgs} -a @me`,
       ] as unknown as TemplateStringsArray)
       break
+
     case 'pr merge':
-      await $([
-        `cd ${repoPath} && gh ${ghCommand} ${prNumber} ${ghCommandArgs}`,
-      ] as unknown as TemplateStringsArray)
-      break
     case 'pr review':
-      await $([
-        `cd ${repoPath} && gh ${ghCommand} ${prNumber} ${ghCommandArgs}`,
-      ] as unknown as TemplateStringsArray)
-      break
     case 'pr comment':
-      await $([
-        `cd ${repoPath} && gh ${ghCommand} ${prNumber} ${ghCommandArgs}`,
-      ] as unknown as TemplateStringsArray)
-      break
     case 'pr edit':
       await $([
         `cd ${repoPath} && gh ${ghCommand} ${prNumber} ${ghCommandArgs}`,
       ] as unknown as TemplateStringsArray)
       break
+
     default:
       throw new Error('Unsupported gh command.')
   }
@@ -135,7 +126,7 @@ async function main() {
     {
       type: 'list',
       choices: ['comment', 'approve', 'request-changes'],
-      name: 'opts',
+      name: 'listChoice',
       message: 'Select a review option to execute:',
       when: answers => answers.ghCommand === 'pr review',
     },
@@ -153,14 +144,14 @@ async function main() {
     },
     {
       type: 'input',
-      name: 'add-reviewer',
+      name: 'addReviewer',
       message: "Enter the reviewer's login:",
       when: answers => answers.ghCommand === 'pr edit',
     },
     {
       type: 'list',
       choices: ['squash', 'merge', 'rebase'],
-      name: 'opts',
+      name: 'listChoice',
       message: 'Select a merge option to execute:',
       when: answers => answers.ghCommand === 'pr merge',
     },
@@ -178,13 +169,14 @@ async function main() {
             .map(([key, value]) =>
               key === 'sourceBranch'
                 ? `--head=${value}`
-                : `--${key}="${value}"`,
+                : `--${kebab(key)}="${value}"`,
             )
             .join(' ')
 
           await executeCommand(answers.ghCommand, '', ghCommandArgs, repoPath)
         }
         break
+
       case 'pr review':
       case 'pr comment':
       case 'pr merge':
@@ -196,7 +188,9 @@ async function main() {
               .filter(([key]) => key !== 'ghCommand' && key !== 'sourceBranch')
               .filter(([, value]) => Boolean(value))
               .map(([key, value]) =>
-                key === 'opts' ? `--${value}` : `--${key}="${value}"`,
+                key === 'listChoice'
+                  ? `--${value}`
+                  : `--${kebab(key)}="${value}"`,
               )
               .join(' ')
 
@@ -213,6 +207,7 @@ async function main() {
           }
         }
         break
+
       default:
         throw new Error('Unsupported gh command.')
     }

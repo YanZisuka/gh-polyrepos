@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "inquirer": "^9.2.12",
+    "kebab-case": "^1.0.2",
     "zx": "^7.2.3"
   },
   "devDependencies": {
