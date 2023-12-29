@@ -1,12 +1,35 @@
 #!/usr/bin/env zx
 import 'zx/globals'
 
+import { readFileSync } from 'fs'
 import { readdir, stat } from 'fs/promises'
 import inquirer from 'inquirer'
 
-const ROOT_DIR = '../backends'
+async function getRootDir(): Promise<string> {
+  const ROOT_DIR: string = JSON.parse(
+    readFileSync('.gh-polyrepos.config.json', 'utf8'),
+  ).rootDir
 
-async function getPrNumber(repoPath: string, sourceBranch: string) {
+  const answers = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'rootDir',
+      message: 'Enter the root directory:',
+      when: () => !ROOT_DIR,
+    },
+  ])
+
+  if (answers.rootDir) {
+    await $`jq '.rootDir = "${answers.rootDir}"' .gh-polyrepos.config.json > tmp.json && mv tmp.json .gh-polyrepos.config.json`
+  }
+
+  return answers.rootDir ?? ROOT_DIR
+}
+
+async function getPrNumber(
+  repoPath: string,
+  sourceBranch: string,
+): Promise<string | null> {
   const result =
     await $`cd ${repoPath} && gh pr list --state all --head ${sourceBranch} --json number --limit 1`
   const prNumber = JSON.parse(result.stdout)[0]?.number
@@ -67,6 +90,8 @@ async function traverseDirectories(
 }
 
 async function main() {
+  const rootDir = await getRootDir()
+
   const answers = await inquirer.prompt([
     {
       type: 'list',
@@ -141,7 +166,7 @@ async function main() {
     },
   ])
 
-  await traverseDirectories(ROOT_DIR, async repoPath => {
+  await traverseDirectories(rootDir, async repoPath => {
     console.log(`Processing ${repoPath}`)
 
     switch (answers.ghCommand) {
