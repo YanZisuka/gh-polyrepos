@@ -1,5 +1,5 @@
 {
-  "version": "0.1.1",
+  "version": "0.5.0",
   "imports": {
     "zx": "https://deno.land/x/zx_deno@1.2.2/mod.mjs",
     "inquirer": "npm:inquirer",
