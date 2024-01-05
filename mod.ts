@@ -1,30 +1,22 @@
 #!/usr/bin/env zx
-import 'zx/globals'
 
-import { readFileSync } from 'fs'
-import { readdir, stat } from 'fs/promises'
+// deno-lint-ignore-file ban-ts-comment
+import { $ } from 'zx'
+
+import { readdir, stat } from 'node:fs/promises'
 import inquirer from 'inquirer'
 import kebab from 'kebab-case'
 
 async function getRootDir(): Promise<string> {
-  const ROOT_DIR: string = JSON.parse(
-    readFileSync('.gh-polyrepos.config.json', 'utf8'),
-  ).rootDir
-
   const answers = await inquirer.prompt([
     {
       type: 'input',
       name: 'rootDir',
       message: 'Enter the root directory:',
-      when: () => !ROOT_DIR,
     },
   ])
 
-  if (answers.rootDir) {
-    await $`jq '.rootDir = "${answers.rootDir}"' .gh-polyrepos.config.json > tmp.json && mv tmp.json .gh-polyrepos.config.json`
-  }
-
-  return answers.rootDir ?? ROOT_DIR
+  return answers.rootDir
 }
 
 async function getPrNumber(
@@ -89,6 +81,16 @@ async function traverseDirectories(
   }
 }
 
+interface GhArgs {
+  ghCommand: string
+  sourceBranch: string
+  base: string
+  title: string
+  body: string
+  listChoice: string
+  addReviewer: string
+}
+
 async function main() {
   const rootDir = await getRootDir()
 
@@ -105,7 +107,7 @@ async function main() {
       type: 'input',
       name: 'sourceBranch',
       message: 'Enter the source branch:',
-      when: answers =>
+      when: (answers: GhArgs) =>
         [
           'pr merge',
           'pr create',
@@ -118,55 +120,55 @@ async function main() {
       type: 'input',
       name: 'base',
       message: 'Enter the base branch for the new pull request:',
-      when: answers => answers.ghCommand === 'pr create',
+      when: (answers: GhArgs) => answers.ghCommand === 'pr create',
     },
     {
       type: 'input',
       name: 'title',
       message: 'Enter the title for the new pull request:',
-      when: answers => answers.ghCommand === 'pr create',
+      when: (answers: GhArgs) => answers.ghCommand === 'pr create',
     },
     {
       type: 'input',
       name: 'body',
       message: 'Enter the body for the new pull request:',
-      when: answers => answers.ghCommand === 'pr create',
+      when: (answers: GhArgs) => answers.ghCommand === 'pr create',
     },
     {
       type: 'list',
       choices: ['comment', 'approve', 'request-changes'],
       name: 'listChoice',
       message: 'Select a review option to execute:',
-      when: answers => answers.ghCommand === 'pr review',
+      when: (answers: GhArgs) => answers.ghCommand === 'pr review',
     },
     {
       type: 'input',
       name: 'body',
       message: 'Enter the review body:',
-      when: answers => answers.ghCommand === 'pr review',
+      when: (answers: GhArgs) => answers.ghCommand === 'pr review',
     },
     {
       type: 'input',
       name: 'body',
       message: 'Enter the comment body:',
-      when: answers => answers.ghCommand === 'pr comment',
+      when: (answers: GhArgs) => answers.ghCommand === 'pr comment',
     },
     {
       type: 'input',
       name: 'addReviewer',
       message: "Enter the reviewer's login:",
-      when: answers => answers.ghCommand === 'pr edit',
+      when: (answers: GhArgs) => answers.ghCommand === 'pr edit',
     },
     {
       type: 'list',
       choices: ['squash', 'merge', 'rebase'],
       name: 'listChoice',
       message: 'Select a merge option to execute:',
-      when: answers => answers.ghCommand === 'pr merge',
+      when: (answers: GhArgs) => answers.ghCommand === 'pr merge',
     },
   ])
 
-  await traverseDirectories(rootDir, async repoPath => {
+  await traverseDirectories(rootDir, async (repoPath) => {
     console.log(`Processing ${repoPath}`)
 
     switch (answers.ghCommand) {
@@ -178,7 +180,8 @@ async function main() {
             .map(([key, value]) =>
               key === 'sourceBranch'
                 ? `--head=${value}`
-                : `--${kebab(key)}="${value}"`,
+                //@ts-ignore
+                : `--${kebab(key)}="${value}"`
             )
             .join(' ')
 
@@ -199,7 +202,8 @@ async function main() {
               .map(([key, value]) =>
                 key === 'listChoice'
                   ? `--${value}`
-                  : `--${kebab(key)}="${value}"`,
+                  //@ts-ignore
+                  : `--${kebab(key)}="${value}"`
               )
               .join(' ')
 

@@ -1,0 +1,26 @@
+{
+  "version": "0.1.1",
+  "imports": {
+    "zx": "https://deno.land/x/zx_deno@1.2.2/mod.mjs",
+    "inquirer": "npm:inquirer",
+    "kebab-case": "npm:kebab-case"
+  },
+  "tasks": {
+    "start": "deno run -A mod.ts"
+  },
+  "lint": {
+    "include": ["**/*.ts"],
+    "rules": {
+      "tags": ["recommended"]
+    }
+  },
+  "fmt": {
+    "lineWidth": 80,
+    "indentWidth": 2,
+    "semiColons": false,
+    "singleQuote": true
+  },
+  "compilerOptions": {
+    "strict": true
+  }
+}
